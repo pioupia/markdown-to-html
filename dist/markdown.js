@@ -1,3 +1,4 @@
+/* Create By Pioupia https://github.com/pioupia/markdown-to-html/ | MIT License */
 class markdownConvertor {
     constructor(options) {
         this.specials = [['**', 'strong'], ['__', 'span style="text-decoration: underline;"'], ['_', '*', 'em'], ['```', 'code'], ['~~', 's'], ['||', 'span class="textHidden" onclick="event.target.classList.contains(\'active\')?event.target.classList.remove(\'active\'):event.target.classList.add(\'active\')"']];
