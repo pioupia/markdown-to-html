@@ -1,0 +1,15 @@
+.container{
+  display: flex;
+  justify-content: space-evenly;
+}
+
+#input{
+  width: 100%;
+  height: 250px;
+}
+
+.render{
+  width: 100%;
+  height: 250px;
+  background: #a1a1a1;
+}
