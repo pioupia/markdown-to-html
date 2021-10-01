@@ -14,25 +14,11 @@ class markdownConvertor {
         html = this.getTitles(html)
         return html;
     }
-
-    convertToString(html){
-        html = this.reverseAll(html);
-        return html;
-    }
-
-    reverseAll(html) {
-        const array = JSON.parse(JSON.stringify(this.specials));
-        array.forEach(e => {
-            const endedHtml = e.pop();
-            let split = html.split(`<${endedHtml}>`);
-            for(let i = 1; i < split.length; i++) {
-                const split2 = split[i]?.split(`</${endedHtml.split(' ')[0]}>`);
-                split[i] = `${e[0]}${split2[0]}${e[0]}${split2[1]}`;
-            }
-            split = split.join('');
-            html = split;
-        });
-        return html;
+    
+    addStyle(caracters, replaceBy){
+        if(!caracters.isArray || typeof replaceBy !== 'string') return console.log("Please provide an Array for the caracters to replace and a string for the value you want to replace by.");
+        this.specials.push([...caracters, repaceBy]);
+        return this;
     }
 
     searchBlockQuote(html){
@@ -117,7 +103,7 @@ class markdownConvertor {
         }
         return html;
     }
-
+    
     setMode(mode){
         if(!['edit','view'].includes(mode)) return 'The chosen mode does not exist';
         this.mode = mode;return true;
