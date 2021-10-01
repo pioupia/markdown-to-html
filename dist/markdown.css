@@ -1,3 +1,4 @@
+/* Create By Pioupia https://github.com/pioupia/markdown-to-html/ | MIT License */
 blockquote {
   border-left: 5px solid #4f545c;
   width: max-content;
@@ -28,5 +29,3 @@ blockquote {
 .link {
   color: blue;
 }
-
-/*# sourceMappingURL=markdown.css.map */
