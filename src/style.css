@@ -9,7 +9,9 @@
 }
 
 .render{
-  width: 100%;
+  max-width: 250px;
   height: 250px;
   background: #a1a1a1;
+  color: #fff;
+  padding: 15px;
 }
