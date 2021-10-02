@@ -22,5 +22,25 @@
     </div>
     <script src="https://pioupia.github.io/markdown-to-html/dist/markdown.min.js">
     </script>
+    <script>
+        const md = new markdownConvertor();
+        const render = document.getElementsByClassName("render")[0];
+        md.setMode('edit')
+        input.oninput = e => {
+          render.innerHTML = md.render(input.value);
+        }
+
+        copy.onclick = e => {
+          md.setMode('view');
+          const d = document.createElement('input');
+          d.value = md.render(input.value);
+          render.appendChild(d)
+          d.select();
+          document.execCommand('copy');
+          d.remove();
+          alert("Le code a bien été copié.");
+          md.setMode('edit');
+        }
+    </script>
   </body>
 </html>
