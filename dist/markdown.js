@@ -1,52 +1,105 @@
 /* Create By Pioupia https://github.com/pioupia/markdown-to-html/ | MIT License */
 class markdownConvertor {
     constructor(options) {
-        this.specials = [['**', 'strong'], ['__', 'span style="text-decoration: underline;"'], ['_', '*', 'em'], ['```', 'code'], ['~~', 's'], ['||', 'span class="textHidden" onclick="event.target.classList.contains(\'active\')?event.target.classList.remove(\'active\'):event.target.classList.add(\'active\')"']];
+        this.specials = [
+            {
+                string: "**",
+                aliases: [],
+                classes: [],
+                htmlCode: "strong",
+                id: "",
+                priority: 1
+            },
+            {
+                string: "__",
+                aliases: [],
+                classes: ["underline"],
+                htmlCode: "span",
+                id: "",
+                priority: 1
+            },
+            {
+                string: "_",
+                aliases: ["*"],
+                classes: [],
+                htmlCode: "em",
+                id: "",
+                priority: .75
+            },
+            {
+                string: "```",
+                classes: ["code"],
+                htmlCode: "code",
+                id: "",
+                priority: 1
+            },
+            {
+                string: "~~",
+                classes: [],
+                htmlCode: "s",
+                id: "",
+                priority: 1
+            },
+            {
+                string: "> ",
+                classes: [],
+                htmlCode: "blockquote",
+                id: "",
+                priority: 1
+            },
+            {
+                string: "||",
+                classes: ["textHidden"],
+                htmlCode: "span",
+                id: "",
+                events: {
+                        onclick: 'event.target.classList.contains(\'active\')?event.target.classList.remove(\'active\'):event.target.classList.add(\'active\')"'
+                    },
+                priority: 1
+            }
+        ]
         this.mode = options?.mode || 'view';
     }
 
+    init(){
+    	this.comileReplace();
+    }
+    
+    comileReplace(){
+    	this.specials = this.specials.sort((a,b) => b.priority - a.priority);
+        this.specials.forEach(e => {
+            e.string = e.string.split('').map(r => '\\'+r).join('');
+            if((e?.aliases?.length??0) > 0){
+                e.aliases.forEach(a => a = a.split('').map(r => '\\'+r).join(''));
+            }
+        });
+    }
+
     render(html){
-        html = this.searchBlockQuote(html);
         html = this.replaceAllCharacters(html);
         html = this.getColors(html);
-        html = this.getImages(html);
         html = this.replaceLigne(html);
         html = this.detectLink(html);
-        html = this.getTitles(html)
+        html = this.getTitles(html);
+        html = this.getImages(html);
         return html;
     }
     
     addStyle(caracters, replaceBy){
         if(!caracters.isArray || typeof replaceBy !== 'string') return console.log("Please provide an Array for the caracters to replace and a string for the value you want to replace by.");
         this.specials.push([...caracters, repaceBy]);
+        this.comileReplace();
         return this;
-    }
-
-    searchBlockQuote(html){
-        let split = html.split(/> /);
-        for(let i = 1; i < split.length; i++) {
-            if((split[i-1]+'> ').match(/<\/(?:article|aside|bdi|command|details|dialog|summary|figure|figcaption|footer|header|hgroup|mark|meter|nav|progress|ruby|rt|rp|section|time|wbr|audio|video|source|embed|track|canvas|datalist|keygen|output|!--|!DOCTYPE|a|abbr|address|area|b|base|bdo|blockquote|body|br|button|canvas|caption|cite|code|col|colgroup|dd|del|dfn|div|dl|dt|em|embed|fieldset|figcaption|figure|footer|form|h1|h2|h3|h4|h5|h6|head|hr|html|i|iframe|img|input|ins|kdb|keygen|label|legend|li|link|map|menu|meta|noscript|object|ol|optgroup|option|p|param|pre|q|s|samp|script|select|small|source|span|strong|style|sub|sup|table|tbody|td|textarea|tfoot|th|thead|title|tr|u|ul|var|acronym|applet|basefont|big|center|dir|font|frame|frameset|noframes|strike|tt)(?:(?: [^<>]*)>|>?)+>/)) continue;
-            const split2 = split[i].split('\n')[0];
-            split[i] = `<blockquote>${this.mode == 'edit' ? '> ' : ''}${split2}</blockquote>${split[i].split('\n').slice(1)?.join('\n')}`;
-        }
-
-        return split.join('');
     }
 
     replaceAllCharacters(html){
         let res = html;
-        const specials = JSON.parse(JSON.stringify(this.specials));
-        specials.forEach(e => {
-            const endedHtml = e.pop();
-            e.forEach(m => {
-                let split = html.split(m);
-                let latest = true;
-                for(let i = 1; i < split.length; i++){
-                    if(latest) split[i] = `<${endedHtml}>${this.mode == 'edit' ? m : ''}${split[i]}${this.mode == 'edit' ? m : ''}</${endedHtml.split(' ')[0]}>`;
-                    latest = !latest;
-                }
-                split = split.join('');
-                html = res = split;
+        this.specials.forEach(e => {
+            const txt = new RegExp(`(?<=${e.string}\s*).*?(?=\s*${e.string})`, 'g');
+            const regexr = new RegExp(`(${e.string}s*).*?(\s*${e.string})`, 'g');
+            res = res.replace(regexr, (str) => {
+                const size = e.string.length / 2;
+                return `<${e.htmlCode}${e.id ? ` id="${e.id}"` : ""}${e.classes ? ` class="${e.classes.join(' ')}"` : ""} ${e.events ? Object.keys(e.events).map(r => `${r}="${e.events[r]}"`).join(' ') : ""}>${str.slice(size, str.length-size)}</${e.htmlCode}>`;
             });
         });
         return res;
@@ -87,8 +140,8 @@ class markdownConvertor {
     detectLink(html){
         return html.replace(/(https?:\/\/[^\s]+)/g, (url) => {
             if(url.includes('"')) return url;
-            const isBr = url.match(/<\/?(?:article|aside|bdi|command|details|dialog|summary|figure|figcaption|footer|header|hgroup|mark|meter|nav|progress|ruby|rt|rp|section|time|wbr|audio|video|source|embed|track|canvas|datalist|keygen|output|'+            '!--|!DOCTYPE|a|abbr|address|area|b|base|bdo|blockquote|body|'+            'br|button|canvas|caption|cite|code|col|colgroup|dd|del|dfn|div|'+            'dl|dt|em|embed|fieldset|figcaption|figure|footer|form|h1|h2|h3|h4|h5|h6|head|hr|html|i|iframe|img|input|ins|kdb|keygen|label|legend|li|link|map|menu|meta|noscript|object|ol|optgroup|option|p|param|'+            'pre|q|s|samp|script|select|small|source|span|strong|style|sub|'+            'sup|table|tbody|td|textarea|tfoot|th|thead|title|tr|u|ul|var|'+            'acronym|applet|basefont|big|center|dir|font|frame|frameset|noframes|strike|tt)(?:(?: [^<>]*)>|>?)+>/);
-            return `<a href="${(isBr&&(isBr?.length??0)>0)?url.slice(0, url.indexOf(isBr[0])):url}" target="_blank" class="link">${(isBr&&(isBr?.length??0)>0)?url.slice(0, url.indexOf(isBr[0])):url}</a>${(isBr&&(isBr?.length??0)>0)?url.slice(url.indexOf(isBr[0])):''}`;
+            const isBr = url.match(/<\/?(?:article|aside|bdi|command|details|dialog|summary|figure|figcaption|footer|header|hgroup|mark|meter|nav|progress|ruby|rt|rp|section|time|wbr|audio|video|source|embed|track|canvas|datalist|keygen|output|!--|!DOCTYPE|a|abbr|address|area|b|base|bdo|blockquote|body|br|button|canvas|caption|cite|code|col|colgroup|dd|del|dfn|div|dl|dt|em|embed|fieldset|figcaption|figure|footer|form|h1|h2|h3|h4|h5|h6|head|hr|html|i|iframe|img|input|ins|kdb|keygen|label|legend|li|link|map|menu|meta|noscript|object|ol|optgroup|option|p|param|pre|q|s|samp|script|select|small|source|span|strong|style|sub|sup|table|tbody|td|textarea|tfoot|th|thead|title|tr|u|ul|var|acronym|applet|basefont|big|center|dir|font|frame|frameset|noframes|strike|tt)(?:(?: [^<>]*)>|>?)+>/);
+            return `<a href="${(isBr&&(isBr?.length??0)>0)?url.slice(0, url.indexOf(isBr[0])):url}" target="_blank" rel="noreferrer" class="link">${(isBr&&(isBr?.length??0)>0)?url.slice(0, url.indexOf(isBr[0])):url}</a>${(isBr&&(isBr?.length??0)>0)?url.slice(url.indexOf(isBr[0])):''}`;
         });
     }
 
@@ -98,7 +151,8 @@ class markdownConvertor {
             const split = html.split(str.repeat(i));
             for(let o = 1; o < split.length; o++) {
                 const split2 = split[o].split('<br>');
-                split[o] = `<h${i}>${split2[0]}</h${i}>\n${split2.slice(1)?.join('<br>')||''}`;
+                if(split2[0]?.replace(/ /g,'')?.length < 1) continue;
+                split[o] = `<h${i} class="title-${i}">${split2[0]}</h${i}>\n${split2.slice(1)?.join('<br>')||''}`;
             }
             html = split.join('');
         }

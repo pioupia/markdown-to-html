@@ -29,3 +29,13 @@ blockquote {
 .link {
   color: blue;
 }
+
+.title-1, .title-2 {
+	padding-bottom: .3em;
+	border-bottom: 1px solid hsla(210,18%,87%,1);
+	width: 100%;
+}
+
+.title-1, .title-2, .title-3, .title-4, .title-5{
+	margin-top: 0 !important;
+}
